@@ -1,0 +1,36 @@
+{
+    "import": "google/protobuf/descriptor.proto",
+    "options_extend": {
+        "google.protobuf.FileOptions": {"Times": "optional", "type": "string", "key": "my_file_option", "value": 50000}
+
+    },
+    "owner": {
+        "email": {"type": "string", "Times": "optional"},
+        "first_name": {"type": "string", "Times": "required",
+                       "options": {"my_field_option": 4.5}},
+        "PhoneType": {"type": "enum", "fields": ["Mobile", "Home", "Work"], "options": {"my_enum_option": true}},
+        "PhoneNumber": {
+            "number": {"type": "string", "Times": "optional"},
+            "type": {"type": "PhoneType", "Times": "optional", "default": "HOME"}
+        },
+        "options": {
+            "my_message_option": 51234
+        }
+
+    },
+    "License": {
+        "email": {"type": "string", "Times": "repeated"},
+        "first_name": {"type": "string", "Times": "repeated"}
+    },
+
+    "service": "syntegon",
+    "grpc": {
+        "options": {
+            "my_message_option": 51234
+        },
+        "GetOrganization": {"arg": "GetRequestById", "returns": "OrganizationRes",
+                            "options": {"my_method_option.foo": 4.5, "my_method_option.bar": "something_bar"}},
+        "DeleteOrganization": {"arg": "GetRequestById", "returns": ""}
+    }
+
+}
