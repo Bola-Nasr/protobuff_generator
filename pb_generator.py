@@ -8,6 +8,31 @@ class JsonPb:
         self.protobuff = ''
         self.protobuff_version = version
         self.file = file
+        self.exclude = [GRPC, OPTIONS, OPTIONS_EXTEND]
+
+    def service(self, message_dict):
+        message_name = f"service {message_dict.capitalize()} \n" + "{ \n"
+        self.protobuff += self.parse_grpc(self.json_obj[GRPC], message_name)
+
+    def options(self, message_dict):
+        message_name = ""
+        self.protobuff += self.parse_options(message_dict, message_name)
+
+    def options_extend(self, message_dict):
+        message_name = ""
+        self.protobuff += self.parse_options_extend(message_dict, message_name)
+
+    def import_package(self, message_dict):
+        message_name = f"import {message_dict} \n\n"
+        self.protobuff += message_name
+
+    def enum_message(self, key, types, message_name):
+        message_name += self.parse_enum(key, types)
+        return message_name
+
+    def options_message(self, message_dict, message_name):
+        message_name = self.parse_options(message_dict, message_name)
+        return message_name
 
     def parse_json_to_pb(self):
         """
@@ -20,25 +45,14 @@ class JsonPb:
 
         for key in self.json_obj:
 
-            if type(self.json_obj[key]) is dict and key not in [GRPC, OPTIONS, OPTIONS_EXTEND]:
+            if type(self.json_obj[key]) is dict and key not in self.exclude:
                 message_name = f"message {key.capitalize()} \n" + "{ \n"
                 self.protobuff += self.parse_message(key, self.json_obj[key], message_name)
-
-            elif key == SERVICE:
-                message_name = f"service {self.json_obj[key].capitalize()} \n" + "{ \n"
-                self.protobuff += self.parse_grpc(self.json_obj["grpc"], message_name)
-
-            elif key == OPTIONS:
-                message_name = ""
-                self.protobuff += self.parse_options(self.json_obj[key], message_name)
-
-            elif key == OPTIONS_EXTEND:
-                message_name = ""
-                self.protobuff += self.parse_options_extend(self.json_obj[key], message_name)
-
-            elif key == IMPORT:
-                message_name = f"import {self.json_obj[key]} \n\n"
-                self.protobuff += message_name
+            else:
+                try:
+                    getattr(self, key)(self.json_obj[key])
+                except:
+                    pass
 
         self.write_protobuff()
 
@@ -61,15 +75,17 @@ class JsonPb:
                 message = ""
                 continue
 
-            elif message_dict[types].get(TYPE) == ENUM:
-                message_name += self.parse_enum(key, types)
-                message = ""
-                continue
-
-            elif types == "options":
-                message_name = self.parse_options(message_dict[types], message_name)
-                message = ""
-                continue
+            else:
+                try:
+                    fun = ENUM if message_dict[types].get(TYPE) else types
+                    if fun == ENUM:
+                        message_name += getattr(self, f"{fun}_message")(key, types, message_name)
+                    else:
+                        message_name = getattr(self, f"{fun}_message")(message_dict[types], message_name)
+                    message = ""
+                    continue
+                except:
+                    pass
 
             s = message_dict[types][TIMES]
             count += 1
@@ -82,9 +98,8 @@ class JsonPb:
                 for k, v in message_dict[types][OPTIONS].items():
                     s += f" [{k} = {v}]"
 
-            s += ";\n"
             message += s
-            message_name += f"{message}"
+            message_name += f"{message}; \n"
             message = ""
         message_name += "}\n\n"
         return message_name
@@ -103,7 +118,7 @@ class JsonPb:
             enum_count += 1
 
         if type(self.json_obj[key][types][OPTIONS]) is dict:
-            s = self.parse_options(self.json_obj[key][types][OPTIONS], s)
+            s = getattr(self, f"{OPTIONS}_message")(self.json_obj[key][types][OPTIONS], s)
 
         s += "}\n"
         message_name += s
@@ -117,7 +132,7 @@ class JsonPb:
         for types in message_dict:
 
             if types == OPTIONS:
-                message = self.parse_options(message_dict[types], message)
+                message = getattr(self, f"{types}_message")(message_dict[types], message)
             else:
                 message += f"rpc {types} ({message_dict[types][ARG]}) returns"
 
@@ -128,7 +143,7 @@ class JsonPb:
 
                 message += "{ "
                 if message_dict[types].get(OPTIONS):
-                    message = self.parse_options(message_dict[types][OPTIONS], message)
+                    message = getattr(self, f"{OPTIONS}_message")(message_dict[types][OPTIONS], message)
 
                 message += "}\n"
 

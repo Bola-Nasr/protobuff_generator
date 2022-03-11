@@ -1,5 +1,5 @@
 {
-    "import": "google/protobuf/descriptor.proto",
+    "import_package": "google/protobuf/descriptor.proto",
     "options_extend": {
         "google.protobuf.FileOptions": {"Times": "optional", "type": "string", "key": "my_file_option", "value": 50000}
 

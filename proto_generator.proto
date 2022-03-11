@@ -6,8 +6,12 @@ optional string my_file_option = 50000;
  }
 message Owner 
 { 
-optional string email = 1;
-required string first_name = 2 [my_field_option = 4.5];
+optional string email = 1; 
+required string first_name = 2 [my_field_option = 4.5]; 
+message Owner 
+{ 
+optional string email = 1; 
+required string first_name = 2 [my_field_option = 4.5]; 
 enum Phonetype 
 { 
 Mobile= 0;
@@ -17,8 +21,8 @@ option (my_enum_option) = 'True';
 }
 message Phonenumber 
 { 
-optional string number = 1;
-optional PhoneType type = 2 [default = HOME];
+optional string number = 1; 
+optional PhoneType type = 2 [default = HOME]; 
 }
 
 option (my_message_option) = '51234';
@@ -26,8 +30,8 @@ option (my_message_option) = '51234';
 
 message License 
 { 
-repeated string email = 1;
-repeated string first_name = 2;
+repeated string email = 1; 
+repeated string first_name = 2; 
 }
 
 service Syntegon 
